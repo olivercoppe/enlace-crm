@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="CRM Enlace — gestión de empresas, materiales, costos y contactos." />
+<meta name="theme-color" content="#0d0d0d" />
+<title>Enlace CRM</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="assets/css/styles.css" />
+<script src="config.js"></script>
+</head>
+<body>
+
+<div id="boot" class="boot">
+  <div class="boot__mark">E</div>
+  <div class="boot__text">Cargando Enlace CRM…</div>
+</div>
+
+<div id="app" class="app" hidden>
+
+  <!-- ══ Sidebar ══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <div class="brand__mark">E</div>
+      <div class="brand__text">
+        <strong>Enlace</strong>
+        <span>CRM</span>
+      </div>
+      <button class="icon-btn sidebar__close" data-action="toggle-sidebar" aria-label="Cerrar menú">✕</button>
+    </div>
+
+    <nav class="nav" id="nav"></nav>
+
+    <div class="sidebar__foot">
+      <div class="sync" id="sync-badge" title="Estado de sincronización">
+        <span class="sync__dot"></span>
+        <span class="sync__label">Local</span>
+      </div>
+      <button class="icon-btn" data-action="toggle-theme" aria-label="Cambiar tema" title="Cambiar tema">◐</button>
+    </div>
+  </aside>
+
+  <div class="scrim" data-action="toggle-sidebar" hidden></div>
+
+  <!-- ══ Main ══ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="icon-btn topbar__menu" data-action="toggle-sidebar" aria-label="Abrir menú">☰</button>
+
+      <div class="search" role="search">
+        <span class="search__icon" aria-hidden="true">⌕</span>
+        <input id="global-search" type="search" placeholder="Buscar empresas, materiales, contactos…  (Ctrl+K)" autocomplete="off" spellcheck="false" />
+        <div class="search__results" id="search-results" hidden></div>
+      </div>
+
+      <div class="topbar__actions">
+        <button class="btn btn--ghost" data-action="quick-add" title="Crear registro (Ctrl+N)">
+          <span class="btn__plus">＋</span><span class="hide-sm">Nuevo</span>
+        </button>
+        <div class="user-chip" id="user-chip" title="Usuario activo">
+          <span class="user-chip__avatar" id="user-avatar">?</span>
+          <span class="user-chip__name hide-sm" id="user-name">Invitado</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="view" id="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="modal-root" id="modal-root"></div>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

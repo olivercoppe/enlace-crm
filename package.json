@@ -1,0 +1,12 @@
+{
+  "name": "enlace-crm",
+  "version": "1.0.0",
+  "description": "CRM de Enlace — empresas, materiales, precios, contactos y seguimiento comercial.",
+  "private": true,
+  "scripts": {
+    "start": "node serve.js",
+    "dev": "node serve.js 5173"
+  },
+  "keywords": ["crm", "enlace", "materiales", "cotizaciones"],
+  "license": "UNLICENSED"
+}

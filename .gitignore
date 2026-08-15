@@ -1,0 +1,23 @@
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.vscode/
+.idea/
+*.swp
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Respaldos locales que no deben subirse al repositorio
+respaldos/
+*.local.json
+enlace-crm-respaldo-*.json
+enlace-*.csv
+
+# NOTA: config.js SÍ se sube al repositorio.
+# La llave "anon" de Supabase es pública por diseño; la seguridad
+# real vive en las políticas RLS definidas en supabase/schema.sql.

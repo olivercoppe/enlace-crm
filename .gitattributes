@@ -1,0 +1,12 @@
+# Normaliza los finales de línea: evita las advertencias de CRLF en Windows
+# y mantiene el repositorio consistente entre equipos.
+* text=auto eol=lf
+
+# Binarios: nunca se tocan
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff2 binary
+*.pdf binary
