@@ -54,11 +54,18 @@ Puedes borrarlos después desde *Ajustes → Datos*.
 
 ## 3. Subirlo a Git (Git Bash)
 
+> ⚠️ **Antes de cualquier comando de Git, confirma la carpeta.** Git Bash abre en
+> `~` (tu carpeta de usuario). Si corres `git init` ahí, Git intentará versionar
+> **todo** tu perfil: descargas, caches, juegos. Fíjate en el texto azul del
+> prompt: debe decir `.../Desktop/CRM`, no `~`.
+>
+> Para salir de dudas: `pwd` debe imprimir `/c/Users/olive/OneDrive/Desktop/CRM`.
+> Si te equivocaste, `rm -rf ~/.git` deshace un `git init` accidental.
+
 ```bash
 cd "/c/Users/olive/OneDrive/Desktop/CRM"
-git init -b main
-git add .
-git commit -m "Primera versión del CRM de Enlace"
+pwd                 # verifica que estés en la carpeta correcta
+git status          # ya está inicializado y con el primer commit hecho
 ```
 
 Crea el repositorio en GitHub (**privado**) y enlázalo:
