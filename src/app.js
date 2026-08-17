@@ -13,6 +13,7 @@ import { renderAjustes } from './views/ajustes.js';
 import { debounce, initials, norm, ls, truncate, money } from './lib/utils.js';
 import './views/secciones.js';
 import './views/cotizaciones.js';
+import './views/materiales.js';
 
 /* ── Mapa de navegación ──────────────────────────────────── */
 

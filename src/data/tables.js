@@ -4,4 +4,4 @@ export const ALL_TABLES = [...DATA_TABLES, 'ajustes'];
 
 /* Campos que en Postgres son arreglos o JSON. */
 export const ARRAY_FIELDS = new Set(['etiquetas']);
-export const JSON_FIELDS = new Set(['items']);
+export const JSON_FIELDS = new Set(['items', 'costos_produccion']);

@@ -60,31 +60,39 @@ create table if not exists public.contactos (
   updated_by  text
 );
 
--- ── Materiales ──────────────────────────────────────────────
+-- ── Materiales (el desglose de costo vive en costos_produccion) ──
 create table if not exists public.materiales (
-  id              uuid primary key default gen_random_uuid(),
-  nombre          text not null,
-  sku             text,
-  categoria       text,
-  marca           text,
-  unidad          text,
-  activo          boolean default true,
-  descripcion     text,
-  costo           numeric,
-  precio_lista    numeric,
-  moneda          text default 'MXN',
-  iva_pct         numeric default 16,
-  stock           numeric,
-  stock_min       numeric,
-  lead_time_dias  integer,
-  ubicacion       text,
-  etiquetas       text[] default '{}',
-  notas           text,
-  created_at      timestamptz default now(),
-  updated_at      timestamptz default now(),
-  created_by      text,
-  updated_by      text
+  id                     uuid primary key default gen_random_uuid(),
+  nombre                 text not null,
+  sku                    text,
+  categoria              text,
+  marca                  text,
+  unidad                 text,
+  activo                 boolean default true,
+  descripcion            text,
+  costo                  numeric,
+  precio_lista           numeric,
+  moneda                 text default 'MXN',
+  iva_pct                numeric default 16,
+  costos_produccion      jsonb default '[]'::jsonb,
+  unidades_lote          numeric default 1,
+  usar_costo_produccion  boolean default true,
+  stock                  numeric,
+  stock_min              numeric,
+  lead_time_dias         integer,
+  ubicacion              text,
+  etiquetas              text[] default '{}',
+  notas                  text,
+  created_at             timestamptz default now(),
+  updated_at             timestamptz default now(),
+  created_by             text,
+  updated_by             text
 );
+
+-- Para instalaciones anteriores: agrega las columnas si aún no existen.
+alter table public.materiales add column if not exists costos_produccion     jsonb   default '[]'::jsonb;
+alter table public.materiales add column if not exists unidades_lote         numeric default 1;
+alter table public.materiales add column if not exists usar_costo_produccion boolean default true;
 
 -- ── Precios acordados por empresa (empresa ↔ material) ──────
 create table if not exists public.catalogo (

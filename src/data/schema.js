@@ -48,6 +48,12 @@ export const CATEGORIAS_SUGERIDAS = [
   'Ferretería', 'Eléctrico', 'Herramienta', 'Refacciones', 'Papelería', 'Servicio', 'Otro',
 ];
 
+/* Tipos de gasto del desglose de costo de producción. */
+export const CATEGORIAS_COSTO = [
+  'Materia prima', 'Insumos', 'Mano de obra', 'Maquinaria', 'Energía',
+  'Empaque', 'Flete', 'Merma', 'Servicios externos', 'Otro',
+];
+
 /* Tablas persistidas (orden = orden de carga y de respaldo) */
 export const TABLAS = ['empresas', 'contactos', 'materiales', 'catalogo', 'oportunidades', 'cotizaciones', 'actividades'];
 
@@ -157,7 +163,10 @@ export const RESOURCES = {
     icon: '▣',
     titleField: 'nombre',
     search: ['nombre', 'sku', 'categoria', 'descripcion', 'marca', 'etiquetas'],
-    defaults: { unidad: 'Pieza', moneda: 'MXN', activo: true, iva_pct: 16, etiquetas: [] },
+    defaults: {
+      unidad: 'Pieza', moneda: 'MXN', activo: true, iva_pct: 16, etiquetas: [],
+      costos_produccion: [], unidades_lote: 1, usar_costo_produccion: true,
+    },
     fields: [
       { key: 'nombre', label: 'Nombre del material', type: 'text', required: true, group: 'Identificación' },
       { key: 'sku', label: 'SKU / Clave interna', type: 'text', placeholder: 'MAT-0001' },
@@ -166,7 +175,8 @@ export const RESOURCES = {
       { key: 'unidad', label: 'Unidad de medida', type: 'select', options: UNIDADES, required: true },
       { key: 'activo', label: 'Activo en catálogo', type: 'checkbox' },
       { key: 'descripcion', label: 'Descripción / especificación', type: 'textarea', full: true, rows: 3 },
-      { key: 'costo', label: 'Costo base', type: 'currency', min: 0, group: 'Precios', help: 'Lo que nos cuesta a nosotros.' },
+      { key: 'costo', label: 'Costo base', type: 'currency', min: 0, group: 'Precios',
+        help: 'Lo que nos cuesta a nosotros. Si desglosas el costo de producción abajo, se calcula solo.' },
       { key: 'precio_lista', label: 'Precio de lista', type: 'currency', min: 0, help: 'Precio de venta sugerido.' },
       { key: 'moneda', label: 'Moneda', type: 'select', options: MONEDAS, required: true },
       { key: 'iva_pct', label: 'IVA (%)', type: 'number', min: 0, step: '0.5' },
@@ -177,7 +187,7 @@ export const RESOURCES = {
       { key: 'etiquetas', label: 'Etiquetas', type: 'tags', full: true },
       { key: 'notas', label: 'Notas', type: 'textarea', full: true, rows: 3 },
     ],
-    columns: ['nombre', 'sku', 'categoria', 'unidad', 'costo', 'precio_lista', 'margen', 'stock'],
+    columns: ['nombre', 'sku', 'categoria', 'unidad', 'costo_produccion', 'costo', 'precio_lista', 'margen', 'stock'],
     filters: [{ key: 'categoria', label: 'Categoría', dynamic: true }],
   },
 
@@ -329,6 +339,7 @@ export const COLUMN_LABELS = {
   lead_time_dias: 'Entrega', vigencia: 'Vigencia', titulo: 'Oportunidad', etapa: 'Etapa', valor: 'Valor',
   probabilidad: 'Prob.', cierre_estimado: 'Cierre', folio: 'Folio', fecha: 'Fecha', total: 'Total',
   asunto: 'Asunto', prioridad: 'Prioridad', telefono: 'Teléfono',
+  costo_produccion: 'Costo prod.',
 };
 
 /** «Nueva empresa» / «Nuevo material» — concordancia de género. */
@@ -341,6 +352,36 @@ export function nuevoRegistro(resourceKey, extra = {}) {
   const base = {};
   for (const f of r.fields) base[f.key] = f.type === 'checkbox' ? false : (f.type === 'tags' ? [] : null);
   return { ...base, ...structuredClone(r.defaults || {}), ...extra };
+}
+
+/**
+ * Desglose de costo de producción de un material.
+ * Cada concepto es cantidad × costo unitario; el total del lote se divide
+ * entre las unidades que salen del lote para obtener el costo por unidad.
+ */
+export function totalesProduccion(material) {
+  const conceptos = Array.isArray(material?.costos_produccion) ? material.costos_produccion : [];
+  const importe = (c) => (Number(c?.cantidad) || 0) * (Number(c?.costo_unitario) || 0);
+
+  const totalLote = conceptos.reduce((acc, c) => acc + importe(c), 0);
+  const unidades = Number(material?.unidades_lote) > 0 ? Number(material.unidades_lote) : 1;
+
+  const agrupado = new Map();
+  for (const c of conceptos) {
+    const k = c?.categoria || 'Otro';
+    agrupado.set(k, (agrupado.get(k) || 0) + importe(c));
+  }
+
+  return {
+    conceptos: conceptos.length,
+    totalLote,
+    unidades,
+    costoUnitario: totalLote / unidades,
+    porCategoria: [...agrupado.entries()]
+      .map(([categoria, monto]) => ({ categoria, monto }))
+      .sort((a, b) => b.monto - a.monto),
+    importe,
+  };
 }
 
 /** Margen porcentual de un material. */

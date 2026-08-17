@@ -7,6 +7,7 @@ import { el, clear, chip, chipList, dataTable, buildForm, drawer, dialog, confir
 import * as S from '../data/store.js';
 import {
   RESOURCES, COLUMN_LABELS, nuevoRegistro, margenPct, totalesCotizacion, etiquetaNuevo,
+  totalesProduccion,
 } from '../data/schema.js';
 import {
   norm, money, num, pct, fecha, fechaHora, desde, sortBy, toCSV, parseCSV,
@@ -47,6 +48,15 @@ export function renderCell(resourceKey, row, colKey) {
     ]);
   }
   if (colKey === 'contacto_id') return S.nombreContacto(v) || '—';
+
+  if (colKey === 'costo_produccion') {
+    const t = totalesProduccion(row);
+    if (!t.conceptos) return el('span.muted', { text: '—' });
+    return el('span', { title: `${t.conceptos} concepto(s) · lote de ${num(t.unidades, 2)}` }, [
+      el('span', { text: money(t.costoUnitario, row.moneda || 'MXN') }),
+      t.unidades !== 1 ? el('div.cell-sub', { text: `lote ${money(t.totalLote, row.moneda || 'MXN')}` }) : null,
+    ]);
+  }
 
   if (colKey === 'margen') {
     const m = margenPct(row);
@@ -116,6 +126,10 @@ const sortValue = (resourceKey, row, colKey) => {
   if (colKey === 'material_id') return S.nombreMaterial(row.material_id);
   if (colKey === 'contacto_id') return S.nombreContacto(row.contacto_id);
   if (colKey === 'margen') return margenPct(row) ?? -Infinity;
+  if (colKey === 'costo_produccion') {
+    const t = totalesProduccion(row);
+    return t.conceptos ? t.costoUnitario : -Infinity;
+  }
   if (colKey === 'total' && resourceKey === 'cotizaciones') return totalesCotizacion(row).total;
   return row[colKey];
 };
@@ -253,7 +267,7 @@ export function renderLista(resourceKey, host, { titulo, subtitulo, filtroBase, 
       ...R.columns.map(c => ({
         key: c,
         label: R.columnLabels?.[c] || COLUMN_LABELS[c] || c,
-        num: MONEY_FIELDS.has(c) || ['margen', 'stock', 'probabilidad', 'lead_time_dias'].includes(c),
+        num: MONEY_FIELDS.has(c) || ['margen', 'stock', 'probabilidad', 'lead_time_dias', 'costo_produccion'].includes(c),
         render: (row) => renderCell(resourceKey, row, c),
       })),
       {

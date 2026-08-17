@@ -6,7 +6,7 @@ import { el, chip, emptyState, toast } from '../lib/ui.js';
 import * as S from '../data/store.js';
 import { setSecciones } from './registry.js';
 import { abrirFormulario, abrirDetalle } from './crud.js';
-import { totalesCotizacion, margenPct } from '../data/schema.js';
+import { totalesCotizacion, margenPct, totalesProduccion } from '../data/schema.js';
 import { money, fecha, num, pct, sortBy, sum, diasHasta } from '../lib/utils.js';
 
 /* ── Bloques reutilizables ───────────────────────────────── */
@@ -169,6 +169,69 @@ setSecciones('materiales', (material, { pintar }) => {
   const cat = S.catalogoDeMaterial(material.id);
   const proveedores = sortBy(cat.filter(c => c.rol === 'Compra'), 'precio', 'asc');
   const clientes = sortBy(cat.filter(c => c.rol === 'Venta'), 'precio', 'desc');
+
+  /* — Costo de producción — */
+  const prod = totalesProduccion(material);
+  const MON = material.moneda || 'MXN';
+  const enUso = material.usar_costo_produccion !== false && prod.conceptos > 0;
+
+  secciones.push(seccion(
+    `Costo de producción (${prod.conceptos} concepto${prod.conceptos === 1 ? '' : 's'})`,
+    prod.conceptos
+      ? el('div', {}, [
+          el('div.mini-list', {}, (material.costos_produccion || []).map((c, i) => fila({
+            titulo: `${i + 1}. ${c.concepto || c.categoria || 'Concepto'}`,
+            sub: [
+              c.categoria,
+              `${num(c.cantidad)} ${c.unidad || ''}`.trim() + ` × ${money(c.costo_unitario, MON)}`,
+            ].filter(Boolean).join(' · '),
+            valor: money(prod.importe(c), MON),
+          }))),
+          el('div.totals', {}, [
+            el('div.totals__row', {}, [
+              el('span', { text: 'Total del lote' }),
+              el('span', { text: money(prod.totalLote, MON) }),
+            ]),
+            el('div.totals__row', {}, [
+              el('span', { text: 'Unidades por lote' }),
+              el('span', { text: num(prod.unidades, 2) }),
+            ]),
+            el('div.totals__row.totals__row--grand', {}, [
+              el('span', { text: 'Costo por unidad' }),
+              el('span', { text: money(prod.costoUnitario, MON) }),
+            ]),
+            el('div.totals__row', { style: { marginTop: '6px' } }, [
+              el('span', { style: { color: 'var(--ink-muted)', fontSize: '12.5px' }, text: 'Costo base del material' }),
+              enUso ? chip('Calculado', 'good') : chip('Manual', 'muted'),
+            ]),
+          ]),
+          prod.porCategoria.length > 1
+            ? el('div', { style: { marginTop: '14px' } }, [
+                el('div.dl__k', { text: 'Reparto por tipo de gasto', style: { marginBottom: '8px' } }),
+                ...prod.porCategoria.map(({ categoria, monto }) => el('div.bar-row', {}, [
+                  el('div.bar-row__label', { text: categoria, title: categoria }),
+                  el('div.bar-row__track', {}, [
+                    el('div.bar-row__fill', {
+                      style: {
+                        width: `${Math.max(2, (monto / prod.totalLote) * 100)}%`,
+                        background: 'var(--seq-450)',
+                      },
+                    }),
+                  ]),
+                  el('div.bar-row__val', { text: money(monto, MON) }),
+                ])),
+              ])
+            : null,
+        ])
+      : el('div.muted', {
+          style: { fontSize: '13px', padding: '4px 0' },
+          text: 'Sin desglose. Edita el material para anotar en qué se gasta al producirlo.',
+        }),
+    el('button.btn.btn--sm', {
+      text: prod.conceptos ? '✎ Editar desglose' : '＋ Desglosar costo',
+      onclick: () => abrirFormulario('materiales', material, { onSaved: pintar }),
+    }),
+  ));
 
   const m = margenPct(material);
   secciones.push(seccion('Rentabilidad', el('div.detail-grid', {}, [
